@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌟 Spelling Stars</title>
+
+  <!-- Google Fonts: Fredoka One for headings, Nunito for body text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =============================================
+       GLOBAL STYLES & CSS VARIABLES
+       ============================================= */
+    :root {
+      --yellow:  #FFD93D;
+      --blue:    #4FC3F7;
+      --green:   #69F0AE;
+      --coral:   #FF6B6B;
+      --purple:  #CE93D8;
+      --white:   #FAFAFA;
+      --dark:    #2D3436;
+      --shadow:  0 4px 15px rgba(0,0,0,0.15);
+      --radius:  20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa 0%, #f3e5f5 50%, #fff9c4 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* =============================================
+       SCREEN CONTAINERS
+       Each "screen" is a div that shows/hides.
+       ============================================= */
+    .screen {
+      display: none;  /* hidden by default */
+      width: 100%;
+      max-width: 680px;
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 36px 32px;
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .screen.active {
+      display: block;  /* show the active screen */
+    }
+
+    /* =============================================
+       ANIMATIONS
+       ============================================= */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      40%       { transform: translateY(-18px) scale(1.1); }
+      70%       { transform: translateY(-8px) scale(1.05); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%       { transform: translateX(-10px); }
+      40%       { transform: translateX(10px); }
+      60%       { transform: translateX(-8px); }
+      80%       { transform: translateX(8px); }
+    }
+
+    @keyframes star-pop {
+      0%   { transform: scale(0) rotate(0deg); opacity: 0; }
+      60%  { transform: scale(1.4) rotate(20deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .bounce   { animation: bounce 0.7s ease; }
+    .shake    { animation: shake 0.5s ease; }
+
+    /* =============================================
+       TYPOGRAPHY
+       ============================================= */
+    h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.6rem;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.8rem;
+      color: var(--dark);
+      margin-bottom: 16px;
+    }
+
+    h3 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.3rem;
+      color: var(--dark);
+      margin-bottom: 12px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    /* =============================================
+       BUTTONS
+       ============================================= */
+    .btn {
+      display: inline-block;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 800;
+      padding: 12px 28px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+      margin: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.15); }
+    .btn:active { transform: translateY(2px);  box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
+
+    .btn-yellow { background: var(--yellow); color: var(--dark); }
+    .btn-blue   { background: var(--blue);   color: var(--dark); }
+    .btn-green  { background: var(--green);  color: var(--dark); }
+    .btn-coral  { background: var(--coral);  color: white; }
+    .btn-purple { background: var(--purple); color: var(--dark); }
+
+    /* =============================================
+       INPUT FIELDS
+       ============================================= */
+    input[type="text"] {
+      width: 100%;
+      padding: 14px 18px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      border: 3px solid #ddd;
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 12px;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--blue);
+    }
+
+    /* =============================================
+       PROGRESS & SCORE BADGE
+       ============================================= */
+    .progress-bar-wrap {
+      background: #eee;
+      border-radius: 50px;
+      height: 14px;
+      margin: 14px 0 20px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--green));
+      border-radius: 50px;
+      transition: width 0.5s ease;
+    }
+
+    .score-badge {
+      display: inline-block;
+      background: var(--yellow);
+      color: var(--dark);
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      padding: 6px 18px;
+      border-radius: 50px;
+      margin-bottom: 16px;
+    }
+
+    /* =============================================
+       FEEDBACK MESSAGE (shown after each answer)
+       ============================================= */
+    .feedback {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      padding: 12px;
+      border-radius: var(--radius);
+      margin: 14px 0;
+      display: none;   /* hidden until needed */
+    }
+
+    .feedback.correct {
+      background: #e8f5e9;
+      color: #2e7d32;
+      display: block;
+    }
+
+    .feedback.wrong {
+      background: #ffebee;
+      color: #c62828;
+      display: block;
+    }
+
+    /* =============================================
+       WORD DISPLAY (large word shown to read)
+       ============================================= */
+    .word-display {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.2rem;
+      color: var(--dark);
+      background: linear-gradient(135deg, #fff9c4, #e3f2fd);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      margin: 16px 0;
+      cursor: pointer;
+      border: 3px dashed var(--blue);
+      display: inline-block;
+      transition: transform 0.1s;
+    }
+
+    .word-display:hover { transform: scale(1.04); }
+
+    /* =============================================
+       SCREEN 1: WORD ENTRY
+       ============================================= */
+    #screen-entry .emoji-title { font-size: 3rem; margin-bottom: 4px; }
+
+    /* =============================================
+       SCREEN 2: LEVEL SELECT
+       ============================================= */
+    .level-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .level-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+      text-align: left;
+    }
+
+    .level-card:hover {
+      transform: scale(1.02);
+      box-shadow: var(--shadow);
+      border-color: rgba(0,0,0,0.1);
+    }
+
+    .level-card .level-icon { font-size: 2.4rem; flex-shrink: 0; }
+    .level-card h3          { margin: 0 0 4px; font-size: 1.15rem; }
+    .level-card p           { margin: 0; font-size: 0.88rem; color: #666; }
+
+    .level-card.lv1 { background: linear-gradient(135deg, #fff9c4, #fffde7); }
+    .level-card.lv2 { background: linear-gradient(135deg, #e3f2fd, #e8f5e9); }
+    .level-card.lv3 { background: linear-gradient(135deg, #fce4ec, #f3e5f5); }
+
+    /* =============================================
+       LEVEL 1: MULTIPLE CHOICE
+       ============================================= */
+    .choices-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .choice-btn {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 16px 12px;
+      border: 3px solid #ddd;
+      border-radius: var(--radius);
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .choice-btn:hover { background: #f0f4ff; border-color: var(--blue); transform: scale(1.03); }
+
+    .choice-btn.correct-answer { background: #e8f5e9; border-color: var(--green); color: #2e7d32; }
+    .choice-btn.wrong-answer   { background: #ffebee; border-color: var(--coral); color: #c62828; }
+
+    /* =============================================
+       LEVEL 2: HANGMAN
+       ============================================= */
+    /* The simple hangman drawing using CSS + divs */
+    .hangman-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 10px 0;
+    }
+
+    .hangman-svg {
+      width: 160px;
+      height: 160px;
+    }
+
+    /* Letter blanks: _ _ _ _ */
+    .blanks {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 0;
+    }
+
+    .blank-letter {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.8rem;
+      width: 44px;
+      height: 50px;
+      border-bottom: 4px solid var(--dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      color: var(--dark);
+      transition: color 0.3s;
+    }
+
+    /* Alphabet keyboard buttons */
+    .keyboard {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin: 14px 0;
+    }
+
+    .key-btn {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1rem;
+      width: 40px;
+      height: 40px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .key-btn:hover:not(:disabled) {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: white;
+    }
+
+    .key-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+
+    .attempts-left {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.1rem;
+      color: var(--coral);
+      margin-bottom: 4px;
+    }
+
+    /* =============================================
+       LEVEL 3: SPELLING MAZE
+       ============================================= */
+    .maze-instruction {
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .maze-grid {
+      display: grid;
+      gap: 8px;
+      justify-content: center;
+      margin: 14px auto;
+      max-width: 380px;
+    }
+
+    .maze-cell {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.3rem;
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      border: 3px solid #ddd;
+      background: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .maze-cell:hover     { background: #e3f2fd; border-color: var(--blue); transform: scale(1.08); }
+    .maze-cell.selected  { background: var(--blue); border-color: #0288d1; color: white; }
+    .maze-cell.correct   { background: var(--green); border-color: #00897b; color: white; }
+    .maze-cell.wrong-sel { background: var(--coral); border-color: #e53935; color: white; animation: shake 0.4s ease; }
+
+    /* Shows which letters have been tapped so far */
+    .maze-progress {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.3rem;
+      letter-spacing: 6px;
+      color: var(--dark);
+      margin: 8px 0;
+      min-height: 36px;
+    }
+
+    /* =============================================
+       RESULTS SCREEN
+       ============================================= */
+    .stars-row {
+      font-size: 2.8rem;
+      margin: 10px 0;
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 0.95rem;
+    }
+
+    .results-table th {
+      background: var(--yellow);
+      padding: 10px;
+      font-weight: 800;
+    }
+
+    .results-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .results-table tr:nth-child(even) td { background: #f9f9f9; }
+
+    .result-correct { color: #2e7d32; font-weight: 700; }
+    .result-wrong   { color: #c62828; font-weight: 700; }
+
+    /* =============================================
+       SPEAK BUTTON
+       ============================================= */
+    .speak-btn {
+      background: none;
+      border: none;
+      font-size: 1.6rem;
+      cursor: pointer;
+      margin-left: 8px;
+      transition: transform 0.2s;
+      vertical-align: middle;
+    }
+    .speak-btn:hover { transform: scale(1.3); }
+
+    /* =============================================
+       UTILITY
+       ============================================= */
+    .mt-8  { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .hidden { display: none !important; }
+
+    /* Floating star that pops on correct answer */
+    .star-pop {
+      position: fixed;
+      font-size: 3rem;
+      pointer-events: none;
+      animation: star-pop 0.7s ease forwards;
+      z-index: 999;
+    }
+
+    /* Loading spinner for "Next word" delay */
+    .spinner {
+      width: 32px; height: 32px;
+      border: 4px solid #ddd;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 12px auto;
+      display: none;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ===========================================
+       SCREEN 1: WORD ENTRY
+       Student types their spelling words here.
+       =========================================== -->
+  <div id="screen-entry" class="screen active">
+    <div class="emoji-title">🌟</div>
+    <h1>Spelling Stars</h1>
+    <p>Type the words you want to practice, separated by commas.</p>
+
+    <!-- Example placeholder helps kids understand the format -->
+    <input
+      type="text"
+      id="words-input"
+      placeholder="e.g. cat, dog, house, school, friend"
+    />
+
+    <p style="font-size:0.85rem; color:#999;">
+      Tip: Type at least <strong>3 words</strong> for the best fun! 🎉
+    </p>
+
+    <button class="btn btn-yellow" onclick="goToLevelSelect()">
+      Next ➜
+    </button>
+  </div>
+
+
+  <!-- ===========================================
+       SCREEN 2: LEVEL SELECT
+       Student picks which game they want to play.
+       =========================================== -->
+  <div id="screen-level" class="screen">
+    <h2>Choose Your Level 🎮</h2>
+    <p>Pick how you want to practice your words!</p>
+
+    <div class="level-cards">
+
+      <!-- Level 1 Card -->
+      <div class="level-card lv1" onclick="startGame(1)">
+        <span class="level-icon">🔤</span>
+        <div>
+          <h3>Level 1 — Pick the Right Spelling</h3>
+          <p>Listen to a word and choose the correct spelling from 4 options.</p>
+        </div>
+      </div>
+
+      <!-- Level 2 Card -->
+      <div class="level-card lv2" onclick="startGame(2)">
+        <span class="level-icon">🪢</span>
+        <div>
+          <h3>Level 2 — Hangman</h3>
+          <p>Guess letters one by one to fill in the word. Don't run out of tries!</p>
+        </div>
+      </div>
+
+      <!-- Level 3 Card -->
+      <div class="level-card lv3" onclick="startGame(3)">
+        <span class="level-icon">🧩</span>
+        <div>
+          <h3>Level 3 — Spelling Maze</h3>
+          <p>Tap the letters in the right order to spell the word!</p>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="btn btn-coral mt-16" onclick="showScreen('screen-entry')">
+      ← Back
+    </button>
+  </div>
+
+
+  <!-- ===========================================
+       SCREEN 3: LEVEL 1 — MULTIPLE CHOICE
+       =========================================== -->
+  <div id="screen-l1" class="screen">
+    <div class="score-badge" id="l1-score-badge">⭐ 0 / 0</div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="l1-progress" style="width:0%"></div>
+    </div>
+
+    <h3 id="l1-instruction">Listen carefully, then pick the correct spelling:</h3>
+
+    <!-- Only a listen button is shown — the word is NEVER displayed as text,
+         so students must rely on hearing it rather than matching the text. -->
+    <div style="margin: 18px 0;">
+      <button class="btn btn-blue" id="l1-speak-btn" onclick="speakWord(currentWord)" style="font-size:1.3rem; padding:16px 36px;">
+        🔊 Tap to hear the word
+      </button>
+      <p style="font-size:0.82rem; color:#aaa; margin-top:6px;">You can tap as many times as you need!</p>
+    </div>
+
+    <!-- Four answer buttons in a 2x2 grid -->
+    <div class="choices-grid" id="l1-choices"></div>
+
+    <div class="feedback" id="l1-feedback"></div>
+    <div class="spinner" id="l1-spinner"></div>
+  </div>
+
+
+  <!-- ===========================================
+       SCREEN 4: LEVEL 2 — HANGMAN
+       =========================================== -->
+  <div id="screen-l2" class="screen">
+    <div class="score-badge" id="l2-score-badge">⭐ 0 / 0</div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="l2-progress" style="width:0%"></div>
+    </div>
+
+    <!-- Simple SVG hangman drawing -->
+    <div class="hangman-wrap">
+      <svg class="hangman-svg" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Gallows (always visible) -->
+        <line x1="20" y1="155" x2="140" y2="155" stroke="#555" stroke-width="5" stroke-linecap="round"/>
+        <line x1="60" y1="155" x2="60" y2="10"  stroke="#555" stroke-width="5" stroke-linecap="round"/>
+        <line x1="60" y1="10"  x2="110" y2="10"  stroke="#555" stroke-width="5" stroke-linecap="round"/>
+        <line x1="110" y1="10" x2="110" y2="30"  stroke="#555" stroke-width="5" stroke-linecap="round"/>
+        <!-- Body parts — shown/hidden by JS via class "hidden" -->
+        <circle id="hm-head"   cx="110" cy="46" r="16" stroke="#FF6B6B" stroke-width="4" class="hidden"/>
+        <line   id="hm-body"   x1="110" y1="62" x2="110" y2="105" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round" class="hidden"/>
+        <line   id="hm-arm-l"  x1="110" y1="75" x2="88"  y2="95"  stroke="#FF6B6B" stroke-width="4" stroke-linecap="round" class="hidden"/>
+        <line   id="hm-arm-r"  x1="110" y1="75" x2="132" y2="95"  stroke="#FF6B6B" stroke-width="4" stroke-linecap="round" class="hidden"/>
+        <line   id="hm-leg-l"  x1="110" y1="105" x2="88" y2="130" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round" class="hidden"/>
+        <line   id="hm-leg-r"  x1="110" y1="105" x2="132" y2="130" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round" class="hidden"/>
+      </svg>
+    </div>
+
+    <p class="attempts-left" id="l2-attempts">❤️ 6 attempts left</p>
+
+    <!-- Click the blanks to hear the word again -->
+    <div style="cursor:pointer" onclick="speakWord(currentWord)">
+      <div class="blanks" id="l2-blanks"></div>
+      <span style="font-size:0.8rem;color:#aaa;">🔊 tap to hear the word</span>
+    </div>
+
+    <!-- Alphabet buttons -->
+    <div class="keyboard" id="l2-keyboard"></div>
+
+    <div class="feedback" id="l2-feedback"></div>
+    <div class="spinner" id="l2-spinner"></div>
+  </div>
+
+
+  <!-- ===========================================
+       SCREEN 5: LEVEL 3 — SPELLING MAZE
+       =========================================== -->
+  <div id="screen-l3" class="screen">
+    <div class="score-badge" id="l3-score-badge">⭐ 0 / 0</div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="l3-progress" style="width:0%"></div>
+    </div>
+
+    <h3>Tap the letters to spell:</h3>
+
+    <!-- Click to hear the word spoken aloud -->
+    <div class="word-display" onclick="speakWord(currentWord)">
+      <span id="l3-word-display">???</span>
+      <span class="speak-btn">🔊</span>
+    </div>
+
+    <p class="maze-instruction">Tap the letters in order — spell the word!</p>
+
+    <!-- Shows which letters have been selected so far -->
+    <div class="maze-progress" id="l3-progress-word"></div>
+
+    <!-- The grid of shuffled letters -->
+    <div class="maze-grid" id="l3-grid"></div>
+
+    <div class="feedback" id="l3-feedback"></div>
+    <div class="spinner" id="l3-spinner"></div>
+  </div>
+
+
+  <!-- ===========================================
+       SCREEN 6: RESULTS
+       =========================================== -->
+  <div id="screen-results" class="screen">
+    <h2 id="results-title">🎉 Well Done!</h2>
+    <div class="stars-row" id="results-stars">⭐⭐⭐</div>
+    <p id="results-summary"></p>
+
+    <!-- Table showing each word and whether it was answered correctly -->
+    <table class="results-table">
+      <thead>
+        <tr><th>Word</th><th>Result</th></tr>
+      </thead>
+      <tbody id="results-body"></tbody>
+    </table>
+
+    <div class="mt-16">
+      <button class="btn btn-yellow" onclick="replayGame()">🔁 Play Again</button>
+      <button class="btn btn-blue"   onclick="showScreen('screen-level')">🎮 New Level</button>
+      <button class="btn btn-green"  onclick="showScreen('screen-entry')">✏️ New Words</button>
+    </div>
+  </div>
+
+
+  <!-- ===========================================
+       JAVASCRIPT — All the game logic is here
+       =========================================== -->
+  <script>
+
+    // ============================================
+    // GLOBAL STATE
+    // Variables that keep track of the game.
+    // ============================================
+
+    let wordList      = [];   // The words the student entered
+    let currentLevel  = 1;    // Which level is being played (1, 2, or 3)
+    let currentIndex  = 0;    // Which word we're on right now
+    let currentWord   = '';   // The word being practiced right now
+    let score         = 0;    // How many correct answers so far
+    let results       = [];   // Array of { word, correct } for the results screen
+
+    // Hangman-specific state
+    let hangmanGuessed   = []; // Letters the student has guessed
+    let hangmanWrong     = 0;  // Number of wrong guesses
+    const HANGMAN_MAX    = 6;  // Max wrong guesses before game over
+
+    // Maze-specific state
+    let mazeSelected     = ''; // Letters tapped so far in maze
+    let mazeCells        = []; // All cells in the maze grid (with letter + index)
+
+
+    // ============================================
+    // SCREEN NAVIGATION
+    // ============================================
+
+    /** Show one screen and hide all others */
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+      // Scroll to top so kids don't get confused
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+
+    // ============================================
+    // STEP 1: READ WORDS AND GO TO LEVEL SELECT
+    // ============================================
+
+    function goToLevelSelect() {
+      const raw = document.getElementById('words-input').value.trim();
+
+      // Split by comma, clean up whitespace, remove empty entries
+      const words = raw.split(',')
+        .map(w => w.trim().toLowerCase())
+        .filter(w => w.length > 0);
+
+      if (words.length < 2) {
+        // Show an inline message instead of alert
+        showInlineError('screen-entry', 'Please enter at least 2 words! 😊');
+        return;
+      }
+
+      wordList = words;
+      showScreen('screen-level');
+    }
+
+
+    // ============================================
+    // STEP 2: START THE CHOSEN GAME
+    // ============================================
+
+    function startGame(level) {
+      currentLevel = level;
+      currentIndex = 0;
+      score        = 0;
+      results      = [];
+
+      // Shuffle the word list so it's different each time
+      wordList = shuffle([...wordList]);
+
+      if (level === 1) { showScreen('screen-l1'); loadL1Word(); }
+      if (level === 2) { showScreen('screen-l2'); loadL2Word(); }
+      if (level === 3) { showScreen('screen-l3'); loadL3Word(); }
+    }
+
+
+    // ============================================
+    // SPEECH SYNTHESIS — speak a word out loud
+    // ============================================
+
+    // Cache the chosen English voice once it is found so we don't
+    // re-scan the voice list on every single word.
+    let englishVoice = null;
+
+    /**
+     * Pick the best English voice available on this device.
+     * Priority order:
+     *   1. en-GB voices (most natural-sounding for UK English spellings)
+     *   2. en-AU / en-NZ / en-IE  (still clearly English)
+     *   3. Any en-US voice
+     *   4. Any voice whose lang starts with "en"
+     *   5. Whatever the browser defaults to (better than nothing)
+     *
+     * We also prefer voices whose name contains "Google", "Daniel",
+     * "Samantha", "Karen", or "Moira" — these are the highest-quality
+     * neural/natural voices available in Chrome/Safari/Edge.
+     */
+    function pickEnglishVoice() {
+      if (englishVoice) return englishVoice;   // already found, reuse it
+
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) return null;    // not loaded yet
+
+      // Helper: score a voice so we can pick the best one
+      function scoreVoice(v) {
+        let s = 0;
+        const lang = v.lang.toLowerCase();
+        const name = v.name.toLowerCase();
+
+        // Prefer British / Commonwealth English over American
+        if (lang === 'en-gb')                                     s += 50;
+        else if (['en-au','en-nz','en-ie'].includes(lang))        s += 40;
+        else if (lang === 'en-us')                                s += 30;
+        else if (lang.startsWith('en'))                           s += 20;
+
+        // Prefer high-quality named voices
+        const goodNames = ['google','daniel','samantha','karen','moira','serena','rishi'];
+        if (goodNames.some(n => name.includes(n)))                s += 15;
+
+        // Prefer local (not network) voices — more reliable
+        if (v.localService)                                       s += 5;
+
+        return s;
+      }
+
+      // Filter to English-only, then sort by score descending
+      const englishVoices = voices.filter(v => v.lang.toLowerCase().startsWith('en'));
+      if (englishVoices.length === 0) return null;
+
+      englishVoices.sort((a, b) => scoreVoice(b) - scoreVoice(a));
+      englishVoice = englishVoices[0];
+      return englishVoice;
+    }
+
+    function speakWord(word) {
+      if (!word) return;
+
+      // Cancel any speech already in progress
+      window.speechSynthesis.cancel();
+
+      function doSpeak() {
+        const utterance  = new SpeechSynthesisUtterance(word);
+        const voice      = pickEnglishVoice();
+        if (voice) utterance.voice = voice;
+
+        // Explicitly set English language so the engine uses English rules
+        utterance.lang   = voice ? voice.lang : 'en-GB';
+        utterance.rate   = 0.88;   // slightly slower so kids can hear clearly
+        utterance.pitch  = 1.0;    // natural pitch (high pitch distorts quality voices)
+        utterance.volume = 1.0;
+
+        window.speechSynthesis.speak(utterance);
+      }
+
+      // Browsers load the voice list asynchronously.
+      // If voices aren't ready yet, wait for the voiceschanged event.
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        doSpeak();
+      } else {
+        window.speechSynthesis.addEventListener('voiceschanged', doSpeak, { once: true });
+      }
+    }
+
+    // Pre-load voices as soon as the page opens so the first word
+    // doesn't have a delay.
+    window.speechSynthesis.getVoices();
+
+
+    // ============================================
+    // LEVEL 1: MULTIPLE CHOICE
+    // ============================================
+
+    function loadL1Word() {
+      if (currentIndex >= wordList.length) { showResults(); return; }
+
+      currentWord = wordList[currentIndex];
+      updateScoreBadge('l1-score-badge', score, currentIndex, wordList.length);
+      updateProgress('l1-progress', currentIndex, wordList.length);
+      hideFeedback('l1-feedback');
+      document.getElementById('l1-spinner').style.display = 'none';
+
+      // Build 3 wrong spellings + 1 correct, then shuffle them all
+      const wrongOnes = makeWrongSpellings(currentWord);
+      const choices   = shuffle([currentWord, ...wrongOnes]);
+
+      // Create a button for each choice
+      const grid = document.getElementById('l1-choices');
+      grid.innerHTML = '';
+      choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className   = 'choice-btn';
+        btn.textContent = choice;
+        btn.onclick     = () => checkL1Answer(choice, btn);
+        grid.appendChild(btn);
+      });
+
+      // Auto-speak the word — this is the ONLY way students can see what the word is
+      setTimeout(() => speakWord(currentWord), 400);
+    }
+
+    function checkL1Answer(chosen, btnEl) {
+      // Disable all buttons so student can't click again
+      document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+
+      const correct = (chosen === currentWord);
+      results.push({ word: currentWord, correct });
+
+      if (correct) {
+        score++;
+        btnEl.classList.add('correct-answer');
+        showFeedback('l1-feedback', '🌟 Correct! Great job!', true);
+        popStar();
+      } else {
+        btnEl.classList.add('wrong-answer');
+        // Also highlight which one was right
+        document.querySelectorAll('.choice-btn').forEach(b => {
+          if (b.textContent === currentWord) b.classList.add('correct-answer');
+        });
+        showFeedback('l1-feedback', `❌ Oops! It was "${currentWord}"`, false);
+        document.getElementById('l1-feedback').classList.add('shake');
+      }
+
+      updateScoreBadge('l1-score-badge', score, currentIndex + 1, wordList.length);
+
+      // Wait 1.5 seconds, then move to next word
+      currentIndex++;
+      setTimeout(() => loadL1Word(), 1600);
+    }
+
+
+    // ============================================
+    // LEVEL 2: HANGMAN
+    // ============================================
+
+    // The hangman body parts — shown one by one as wrong guesses increase
+    const hangmanParts = ['hm-head','hm-body','hm-arm-l','hm-arm-r','hm-leg-l','hm-leg-r'];
+
+    function loadL2Word() {
+      if (currentIndex >= wordList.length) { showResults(); return; }
+
+      currentWord    = wordList[currentIndex];
+      hangmanGuessed = [];
+      hangmanWrong   = 0;
+
+      updateScoreBadge('l2-score-badge', score, currentIndex, wordList.length);
+      updateProgress('l2-progress', currentIndex, wordList.length);
+      hideFeedback('l2-feedback');
+      document.getElementById('l2-spinner').style.display = 'none';
+
+      // Hide all hangman body parts
+      hangmanParts.forEach(id => document.getElementById(id).classList.add('hidden'));
+
+      // Show attempts counter
+      document.getElementById('l2-attempts').textContent =
+        `❤️ ${HANGMAN_MAX - hangmanWrong} attempts left`;
+
+      // Render the blank dashes
+      renderBlanks();
+
+      // Build the alphabet keyboard
+      buildKeyboard();
+
+      // Auto-speak
+      setTimeout(() => speakWord(currentWord), 400);
+    }
+
+    /** Draw _ for each unguessed letter */
+    function renderBlanks() {
+      const container = document.getElementById('l2-blanks');
+      container.innerHTML = '';
+      currentWord.split('').forEach(letter => {
+        const div = document.createElement('div');
+        div.className = 'blank-letter';
+        div.textContent = hangmanGuessed.includes(letter) ? letter.toUpperCase() : '';
+        container.appendChild(div);
+      });
+    }
+
+    /** Create A-Z letter buttons */
+    function buildKeyboard() {
+      const kb = document.getElementById('l2-keyboard');
+      kb.innerHTML = '';
+      'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => {
+        const btn = document.createElement('button');
+        btn.className   = 'key-btn';
+        btn.textContent = letter.toUpperCase();
+        btn.id          = `key-${letter}`;
+        btn.onclick     = () => guessLetter(letter);
+        kb.appendChild(btn);
+      });
+    }
+
+    function guessLetter(letter) {
+      if (hangmanGuessed.includes(letter)) return;
+      hangmanGuessed.push(letter);
+
+      // Disable the button so it can't be clicked again
+      const btn = document.getElementById(`key-${letter}`);
+      if (btn) btn.disabled = true;
+
+      if (currentWord.includes(letter)) {
+        // Correct letter! Re-render blanks
+        renderBlanks();
+
+        // Check if word is complete
+        const allGuessed = currentWord.split('').every(l => hangmanGuessed.includes(l));
+        if (allGuessed) {
+          score++;
+          results.push({ word: currentWord, correct: true });
+          showFeedback('l2-feedback', '🌟 You spelled it! Amazing!', true);
+          popStar();
+          // Disable all keys
+          document.querySelectorAll('.key-btn').forEach(b => b.disabled = true);
+          currentIndex++;
+          setTimeout(() => loadL2Word(), 1600);
+        }
+
+      } else {
+        // Wrong letter — show next body part
+        hangmanWrong++;
+        const partId = hangmanParts[hangmanWrong - 1];
+        if (partId) document.getElementById(partId).classList.remove('hidden');
+
+        document.getElementById('l2-attempts').textContent =
+          `❤️ ${HANGMAN_MAX - hangmanWrong} attempts left`;
+
+        if (hangmanWrong >= HANGMAN_MAX) {
+          // Out of attempts
+          results.push({ word: currentWord, correct: false });
+          // Reveal the full word in blanks
+          hangmanGuessed = currentWord.split('');
+          renderBlanks();
+          showFeedback('l2-feedback', `💔 The word was "${currentWord}"`, false);
+          document.querySelectorAll('.key-btn').forEach(b => b.disabled = true);
+          currentIndex++;
+          setTimeout(() => loadL2Word(), 2000);
+        }
+      }
+
+      updateScoreBadge('l2-score-badge', score, currentIndex, wordList.length);
+    }
+
+
+    // ============================================
+    // LEVEL 3: SPELLING MAZE
+    // ============================================
+
+    function loadL3Word() {
+      if (currentIndex >= wordList.length) { showResults(); return; }
+
+      currentWord  = wordList[currentIndex];
+      mazeSelected = '';
+
+      updateScoreBadge('l3-score-badge', score, currentIndex, wordList.length);
+      updateProgress('l3-progress', currentIndex, wordList.length);
+      hideFeedback('l3-feedback');
+      document.getElementById('l3-spinner').style.display = 'none';
+
+      // Show the word (display as "???" if desired, but we show it for
+      // young learners — they need to match the spelling they see)
+      document.getElementById('l3-word-display').textContent = currentWord;
+      document.getElementById('l3-progress-word').textContent = '';
+
+      buildMazeGrid();
+
+      // Auto-speak
+      setTimeout(() => speakWord(currentWord), 400);
+    }
+
+    function buildMazeGrid() {
+      const word    = currentWord;
+      const letters = word.split('');
+
+      // We'll put the correct letters in the grid plus some decoy letters
+      // Total cells: word length * 2, minimum 12
+      const totalCells = Math.max(letters.length * 2, 12);
+      const decoyCount = totalCells - letters.length;
+
+      // Generate decoy letters (random letters not in the word)
+      const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+      let decoys = [];
+      while (decoys.length < decoyCount) {
+        const r = alphabet[Math.floor(Math.random() * 26)];
+        decoys.push(r);
+      }
+
+      // Mix the correct letters with decoys, then shuffle
+      // We tag each cell so we know if it's a needed letter and at which position
+      mazeCells = [];
+
+      // Add correct letters (each tagged with its position index in the word)
+      letters.forEach((letter, index) => {
+        mazeCells.push({ letter, wordIndex: index, isCorrect: true, used: false });
+      });
+
+      // Add decoys (tagged as not correct)
+      decoys.forEach(letter => {
+        mazeCells.push({ letter, wordIndex: -1, isCorrect: false, used: false });
+      });
+
+      // Shuffle the cells
+      mazeCells = shuffle(mazeCells);
+
+      // Calculate how many columns to use for the grid
+      const cols = Math.min(6, Math.ceil(Math.sqrt(totalCells)));
+      const grid = document.getElementById('l3-grid');
+      grid.style.gridTemplateColumns = `repeat(${cols}, 52px)`;
+      grid.innerHTML = '';
+
+      mazeCells.forEach((cell, i) => {
+        const div = document.createElement('div');
+        div.className   = 'maze-cell';
+        div.textContent = cell.letter.toUpperCase();
+        div.dataset.idx = i;  // store index so we can find it later
+        div.onclick     = () => mazeClickCell(i);
+        grid.appendChild(div);
+      });
+    }
+
+    function mazeClickCell(cellIdx) {
+      const cell = mazeCells[cellIdx];
+      if (cell.used) return;  // already clicked this one
+
+      // The next letter that should be selected is the one at position mazeSelected.length
+      const expectedIndex = mazeSelected.length;
+
+      if (cell.isCorrect && cell.wordIndex === expectedIndex) {
+        // Correct tap!
+        cell.used    = true;
+        mazeSelected += cell.letter;
+
+        // Mark cell green
+        const divEl = document.querySelector(`[data-idx="${cellIdx}"]`);
+        divEl.classList.add('correct');
+        divEl.onclick = null;  // disable further clicks
+
+        // Update progress display
+        document.getElementById('l3-progress-word').textContent =
+          mazeSelected.toUpperCase().split('').join(' ');
+
+        // Check if word is complete
+        if (mazeSelected === currentWord) {
+          score++;
+          results.push({ word: currentWord, correct: true });
+          showFeedback('l3-feedback', '🌟 You spelled it! Brilliant!', true);
+          popStar();
+          // Disable all remaining cells
+          document.querySelectorAll('.maze-cell').forEach(c => c.onclick = null);
+          currentIndex++;
+          setTimeout(() => loadL3Word(), 1600);
+        }
+
+      } else {
+        // Wrong tap — flash red then back to normal
+        const divEl = document.querySelector(`[data-idx="${cellIdx}"]`);
+        divEl.classList.add('wrong-sel');
+        setTimeout(() => divEl.classList.remove('wrong-sel'), 500);
+        showFeedback('l3-feedback', '❌ Wrong letter! Try again.', false);
+        // Clear feedback after a moment so it doesn't stay cluttered
+        setTimeout(() => hideFeedback('l3-feedback'), 1200);
+      }
+    }
+
+
+    // ============================================
+    // RESULTS SCREEN
+    // ============================================
+
+    function showResults() {
+      const total   = results.length;
+      const correct = results.filter(r => r.correct).length;
+      const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+      // Choose a title based on score
+      let title = '🎉 Amazing Work!';
+      if (pct < 50) title = '💪 Keep Practising!';
+      else if (pct < 80) title = '😊 Good Effort!';
+
+      document.getElementById('results-title').textContent = title;
+      document.getElementById('results-summary').textContent =
+        `You got ${correct} out of ${total} correct (${pct}%)!`;
+
+      // Stars: 0-59% → 1 star, 60-89% → 2 stars, 90-100% → 3 stars
+      const stars = pct >= 90 ? '⭐⭐⭐' : pct >= 60 ? '⭐⭐' : '⭐';
+      document.getElementById('results-stars').textContent = stars;
+
+      // Fill results table
+      const tbody = document.getElementById('results-body');
+      tbody.innerHTML = '';
+      results.forEach(r => {
+        const tr  = document.createElement('tr');
+        const td1 = document.createElement('td');
+        const td2 = document.createElement('td');
+        td1.textContent = r.word;
+        td2.innerHTML   = r.correct
+          ? '<span class="result-correct">✅ Correct</span>'
+          : '<span class="result-wrong">❌ Wrong</span>';
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tbody.appendChild(tr);
+      });
+
+      showScreen('screen-results');
+    }
+
+    /** Let the student play the same level with the same words again */
+    function replayGame() {
+      startGame(currentLevel);
+    }
+
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    /** Update the score badge text */
+    function updateScoreBadge(id, sc, idx, total) {
+      document.getElementById(id).textContent = `⭐ ${sc} / ${idx}`;
+    }
+
+    /** Update the progress bar fill */
+    function updateProgress(barId, idx, total) {
+      const pct = total > 0 ? (idx / total) * 100 : 0;
+      document.getElementById(barId).style.width = pct + '%';
+    }
+
+    /** Show the feedback message div */
+    function showFeedback(id, msg, correct) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.className   = 'feedback ' + (correct ? 'correct' : 'wrong');
+    }
+
+    /** Hide the feedback message */
+    function hideFeedback(id) {
+      const el = document.getElementById(id);
+      el.className = 'feedback';
+    }
+
+    /** Show a floating star emoji that pops at a random position */
+    function popStar() {
+      const star  = document.createElement('div');
+      star.className   = 'star-pop';
+      star.textContent = '⭐';
+      star.style.left  = (20 + Math.random() * 60) + 'vw';
+      star.style.top   = (20 + Math.random() * 40) + 'vh';
+      document.body.appendChild(star);
+      // Remove after animation ends (0.7s)
+      setTimeout(() => star.remove(), 800);
+    }
+
+    /** Show an error message inline (instead of alert) */
+    function showInlineError(screenId, msg) {
+      // Remove old error if any
+      const existing = document.querySelector('.inline-error');
+      if (existing) existing.remove();
+
+      const div = document.createElement('p');
+      div.className   = 'inline-error';
+      div.textContent = msg;
+      div.style.cssText = 'color:#c62828; background:#ffebee; padding:10px 14px; border-radius:12px; font-weight:700;';
+      document.getElementById(screenId).appendChild(div);
+
+      // Auto-remove after 3 seconds
+      setTimeout(() => div.remove(), 3000);
+    }
+
+    /**
+     * Generate 3 incorrect spellings of a word.
+     * We do simple mutations: swap letters, add/remove a letter,
+     * change a vowel, or double a consonant.
+     */
+    function makeWrongSpellings(word) {
+      const wrongs  = new Set();
+      const vowels  = 'aeiou';
+      const letters = word.split('');
+      let attempts  = 0;
+
+      while (wrongs.size < 3 && attempts < 60) {
+        attempts++;
+        let variant = [...letters];
+
+        const method = Math.floor(Math.random() * 5);
+
+        if (method === 0 && variant.length >= 2) {
+          // Swap two adjacent letters
+          const i = Math.floor(Math.random() * (variant.length - 1));
+          [variant[i], variant[i + 1]] = [variant[i + 1], variant[i]];
+
+        } else if (method === 1) {
+          // Change a vowel to a different vowel
+          const vowelIdxs = variant.map((l, i) => vowels.includes(l) ? i : -1).filter(i => i >= 0);
+          if (vowelIdxs.length > 0) {
+            const idx  = vowelIdxs[Math.floor(Math.random() * vowelIdxs.length)];
+            const newV = vowels.replace(variant[idx], '')[Math.floor(Math.random() * 4)];
+            variant[idx] = newV;
+          }
+
+        } else if (method === 2 && variant.length > 2) {
+          // Remove a random letter
+          const i = Math.floor(Math.random() * variant.length);
+          variant.splice(i, 1);
+
+        } else if (method === 3) {
+          // Double a random consonant
+          const consonantIdxs = variant.map((l, i) => !vowels.includes(l) ? i : -1).filter(i => i >= 0);
+          if (consonantIdxs.length > 0) {
+            const idx = consonantIdxs[Math.floor(Math.random() * consonantIdxs.length)];
+            variant.splice(idx, 0, variant[idx]);
+          }
+
+        } else {
+          // Replace a letter with a random nearby alphabet letter
+          const i   = Math.floor(Math.random() * variant.length);
+          const ord = variant[i].charCodeAt(0);
+          variant[i] = String.fromCharCode(ord + (Math.random() < 0.5 ? 1 : -1));
+        }
+
+        const result = variant.join('');
+        // Make sure it's different from the correct word and from other variants
+        if (result !== word && result.length > 0) wrongs.add(result);
+      }
+
+      // If we don't have 3 yet, pad with simple fallbacks
+      const fallbacks = ['???', '---', '...'];
+      let fi = 0;
+      while (wrongs.size < 3) wrongs.add(fallbacks[fi++]);
+
+      return [...wrongs];
+    }
+
+    /** Fisher-Yates shuffle — rearranges an array randomly */
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // ============================================
+    // KEYBOARD SUPPORT (for maze and hangman)
+    // Students can type letters on their keyboard too.
+    // ============================================
+    document.addEventListener('keydown', (e) => {
+      const letter = e.key.toLowerCase();
+      if (!/^[a-z]$/.test(letter)) return;
+
+      const active = document.querySelector('.screen.active');
+      if (!active) return;
+
+      if (active.id === 'screen-l2') {
+        // In hangman, pressing a key is the same as clicking the keyboard button
+        guessLetter(letter);
+      }
+    });
+
+  </script>
+
+</body>
+</html>
