@@ -575,8 +575,8 @@
       <div class="level-card lv3" onclick="startGame(3)">
         <span class="level-icon">🧩</span>
         <div>
-          <h3>Level 3 — Spelling Maze</h3>
-          <p>Tap the letters in the right order to spell the word!</p>
+          <h3>Level 3 — Spelling Keyboard</h3>
+          <p>Listen to the word and tap the letters a–z to spell it yourself!</p>
         </div>
       </div>
 
@@ -662,7 +662,9 @@
 
 
   <!-- ===========================================
-       SCREEN 5: LEVEL 3 — SPELLING MAZE
+       SCREEN 5: LEVEL 3 — SPELLING KEYBOARD
+       Students HEAR the word and type it.
+       The word is NEVER shown on screen.
        =========================================== -->
   <div id="screen-l3" class="screen">
     <div class="score-badge" id="l3-score-badge">⭐ 0 / 0</div>
@@ -671,21 +673,57 @@
       <div class="progress-bar-fill" id="l3-progress" style="width:0%"></div>
     </div>
 
-    <h3>Tap the letters to spell:</h3>
+    <h3>Listen and spell the word! 🎧</h3>
 
-    <!-- Click to hear the word spoken aloud -->
-    <div class="word-display" onclick="speakWord(currentWord)">
-      <span id="l3-word-display">???</span>
-      <span class="speak-btn">🔊</span>
+    <!-- The ONLY way students know the word is by listening -->
+    <div style="margin: 14px 0;">
+      <button class="btn btn-blue" onclick="speakWord(currentWord)" style="font-size:1.2rem; padding:14px 32px;">
+        🔊 Tap to hear the word
+      </button>
+      <p style="font-size:0.82rem; color:#aaa; margin-top:6px;">You can tap as many times as you need!</p>
     </div>
 
-    <p class="maze-instruction">Tap the letters in order — spell the word!</p>
+    <!-- The answer input box.
+         - Always shows lowercase letters
+         - No spaces allowed
+         - Students can type on the on-screen keyboard OR their physical keyboard -->
+    <input
+      type="text"
+      id="l3-input"
+      placeholder="type your answer here..."
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="none"
+      spellcheck="false"
+      style="
+        font-size: 1.6rem;
+        font-family: 'Fredoka One', cursive;
+        text-align: center;
+        letter-spacing: 6px;
+        border: 3px solid var(--blue);
+        border-radius: 16px;
+        padding: 14px 18px;
+        width: 100%;
+        margin: 10px 0;
+        outline: none;
+        color: var(--dark);
+      "
+      oninput="l3OnInput(this)"
+      onkeydown="l3OnKeydown(event)"
+    />
 
-    <!-- Shows which letters have been selected so far -->
-    <div class="maze-progress" id="l3-progress-word"></div>
+    <!-- The a-z on-screen keyboard — 26 letters, lowercase, alphabetical -->
+    <div class="keyboard" id="l3-keyboard" style="margin: 10px 0;"></div>
 
-    <!-- The grid of shuffled letters -->
-    <div class="maze-grid" id="l3-grid"></div>
+    <!-- Backspace and Submit buttons -->
+    <div style="margin: 10px 0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button class="btn btn-coral" onclick="l3Backspace()" style="font-size:1rem;">
+        ⌫ Delete
+      </button>
+      <button class="btn btn-green" id="l3-submit-btn" onclick="checkL3Answer()" style="font-size:1.1rem; display:none;">
+        ✅ Submit
+      </button>
+    </div>
 
     <div class="feedback" id="l3-feedback"></div>
     <div class="spinner" id="l3-spinner"></div>
@@ -738,9 +776,8 @@
     let hangmanWrong     = 0;  // Number of wrong guesses
     const HANGMAN_MAX    = 6;  // Max wrong guesses before game over
 
-    // Maze-specific state
-    let mazeSelected     = ''; // Letters tapped so far in maze
-    let mazeCells        = []; // All cells in the maze grid (with letter + index)
+    // Level 3 state
+    let l3typed = ''; // Letters the student has typed so far
 
 
     // ============================================
@@ -1067,123 +1104,154 @@
 
 
     // ============================================
-    // LEVEL 3: SPELLING MAZE
+    // LEVEL 3: SPELLING KEYBOARD
+    // Students hear the word then type it.
+    // The word is NEVER shown on screen.
+    // All input is forced to lowercase, no spaces.
     // ============================================
 
     function loadL3Word() {
+      // If we've gone through all words, show the results screen
       if (currentIndex >= wordList.length) { showResults(); return; }
 
-      currentWord  = wordList[currentIndex];
-      mazeSelected = '';
+      // Set the current word (always stored in lowercase)
+      currentWord = wordList[currentIndex].toLowerCase().trim();
+      l3typed     = '';
 
+      // Update the score badge and progress bar
       updateScoreBadge('l3-score-badge', score, currentIndex, wordList.length);
       updateProgress('l3-progress', currentIndex, wordList.length);
       hideFeedback('l3-feedback');
       document.getElementById('l3-spinner').style.display = 'none';
 
-      // Show the word (display as "???" if desired, but we show it for
-      // young learners — they need to match the spelling they see)
-      document.getElementById('l3-word-display').textContent = currentWord;
-      document.getElementById('l3-progress-word').textContent = '';
+      // Clear the input box and hide the submit button
+      const input = document.getElementById('l3-input');
+      input.value    = '';
+      input.disabled = false;
+      input.focus();   // put the cursor in the box so kids can type straight away
 
-      buildMazeGrid();
+      // Hide the submit button until the student types something
+      document.getElementById('l3-submit-btn').style.display  = 'none';
+      document.getElementById('l3-submit-btn').disabled       = false;
 
-      // Auto-speak
+      // Build the a–z on-screen keyboard (26 letters, lowercase, in order)
+      buildL3Keyboard();
+
+      // Speak the word automatically — this is the ONLY clue!
       setTimeout(() => speakWord(currentWord), 400);
     }
 
-    function buildMazeGrid() {
-      const word    = currentWord;
-      const letters = word.split('');
+    /** Build the on-screen keyboard with letters a to z.
+        Exactly 26 buttons, lowercase only, in alphabetical order.
+        Each letter appears only ONCE. */
+    function buildL3Keyboard() {
+      const kb = document.getElementById('l3-keyboard');
+      kb.innerHTML = ''; // clear any old buttons first
 
-      // We'll put the correct letters in the grid plus some decoy letters
-      // Total cells: word length * 2, minimum 12
-      const totalCells = Math.max(letters.length * 2, 12);
-      const decoyCount = totalCells - letters.length;
-
-      // Generate decoy letters (random letters not in the word)
-      const alphabet = 'abcdefghijklmnopqrstuvwxyz';
-      let decoys = [];
-      while (decoys.length < decoyCount) {
-        const r = alphabet[Math.floor(Math.random() * 26)];
-        decoys.push(r);
-      }
-
-      // Mix the correct letters with decoys, then shuffle
-      // We tag each cell so we know if it's a needed letter and at which position
-      mazeCells = [];
-
-      // Add correct letters (each tagged with its position index in the word)
-      letters.forEach((letter, index) => {
-        mazeCells.push({ letter, wordIndex: index, isCorrect: true, used: false });
-      });
-
-      // Add decoys (tagged as not correct)
-      decoys.forEach(letter => {
-        mazeCells.push({ letter, wordIndex: -1, isCorrect: false, used: false });
-      });
-
-      // Shuffle the cells
-      mazeCells = shuffle(mazeCells);
-
-      // Calculate how many columns to use for the grid
-      const cols = Math.min(6, Math.ceil(Math.sqrt(totalCells)));
-      const grid = document.getElementById('l3-grid');
-      grid.style.gridTemplateColumns = `repeat(${cols}, 52px)`;
-      grid.innerHTML = '';
-
-      mazeCells.forEach((cell, i) => {
-        const div = document.createElement('div');
-        div.className   = 'maze-cell';
-        div.textContent = cell.letter.toUpperCase();
-        div.dataset.idx = i;  // store index so we can find it later
-        div.onclick     = () => mazeClickCell(i);
-        grid.appendChild(div);
+      // 'abcdefghijklmnopqrstuvwxyz' has exactly 26 letters, already in order
+      'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => {
+        const btn       = document.createElement('button');
+        btn.className   = 'key-btn';
+        btn.textContent = letter;            // lowercase display
+        btn.id          = `l3-key-${letter}`;
+        // Clicking a button is the same as typing that letter
+        btn.onclick     = () => l3TypeLetter(letter);
+        kb.appendChild(btn);
       });
     }
 
-    function mazeClickCell(cellIdx) {
-      const cell = mazeCells[cellIdx];
-      if (cell.used) return;  // already clicked this one
+    /** Called when the student taps an on-screen keyboard button.
+        Adds the letter to the input box in lowercase, no spaces. */
+    function l3TypeLetter(letter) {
+      const input = document.getElementById('l3-input');
+      if (input.disabled) return; // don't allow input after submitting
 
-      // The next letter that should be selected is the one at position mazeSelected.length
-      const expectedIndex = mazeSelected.length;
+      // Force lowercase and strip any spaces just to be safe
+      const clean = letter.toLowerCase().replace(/\s/g, '');
+      if (!clean) return;
 
-      if (cell.isCorrect && cell.wordIndex === expectedIndex) {
-        // Correct tap!
-        cell.used    = true;
-        mazeSelected += cell.letter;
+      // Add the letter to the input box
+      input.value += clean;
 
-        // Mark cell green
-        const divEl = document.querySelector(`[data-idx="${cellIdx}"]`);
-        divEl.classList.add('correct');
-        divEl.onclick = null;  // disable further clicks
+      // Sync the l3typed variable with the input box value
+      l3typed = input.value;
 
-        // Update progress display
-        document.getElementById('l3-progress-word').textContent =
-          mazeSelected.toUpperCase().split('').join(' ');
+      // Show the submit button now that something has been typed
+      toggleL3Submit();
+    }
 
-        // Check if word is complete
-        if (mazeSelected === currentWord) {
-          score++;
-          results.push({ word: currentWord, correct: true });
-          showFeedback('l3-feedback', '🌟 You spelled it! Brilliant!', true);
-          popStar();
-          // Disable all remaining cells
-          document.querySelectorAll('.maze-cell').forEach(c => c.onclick = null);
-          currentIndex++;
-          setTimeout(() => loadL3Word(), 1600);
-        }
+    /** Called whenever the student types directly into the input box.
+        Forces all input to lowercase and removes spaces instantly. */
+    function l3OnInput(inputEl) {
+      // Remove spaces and force lowercase as the student types
+      inputEl.value = inputEl.value.replace(/\s/g, '').toLowerCase();
 
-      } else {
-        // Wrong tap — flash red then back to normal
-        const divEl = document.querySelector(`[data-idx="${cellIdx}"]`);
-        divEl.classList.add('wrong-sel');
-        setTimeout(() => divEl.classList.remove('wrong-sel'), 500);
-        showFeedback('l3-feedback', '❌ Wrong letter! Try again.', false);
-        // Clear feedback after a moment so it doesn't stay cluttered
-        setTimeout(() => hideFeedback('l3-feedback'), 1200);
+      // Keep l3typed in sync
+      l3typed = inputEl.value;
+
+      // Show or hide the submit button based on whether anything is typed
+      toggleL3Submit();
+    }
+
+    /** Called on keydown in the input box.
+        Pressing Enter submits the answer. */
+    function l3OnKeydown(event) {
+      if (event.key === 'Enter' && l3typed.length > 0) {
+        checkL3Answer();
       }
+    }
+
+    /** Delete the last typed letter */
+    function l3Backspace() {
+      const input = document.getElementById('l3-input');
+      if (input.disabled) return;
+
+      // Remove the last character
+      input.value = input.value.slice(0, -1);
+      l3typed     = input.value;
+
+      toggleL3Submit();
+    }
+
+    /** Show the submit button if anything has been typed, hide it if empty */
+    function toggleL3Submit() {
+      const btn = document.getElementById('l3-submit-btn');
+      btn.style.display = l3typed.length > 0 ? 'inline-block' : 'none';
+    }
+
+    /** Check if the student's answer is correct.
+        Both sides are trimmed and lowercased before comparing,
+        so "Cat", "CAT", " cat " all count as correct for "cat". */
+    function checkL3Answer() {
+      // Clean both the typed answer and the correct word the same way:
+      // lowercase + remove all spaces + trim edges
+      const typed   = l3typed.replace(/\s/g, '').toLowerCase().trim();
+      const correct = currentWord.replace(/\s/g, '').toLowerCase().trim();
+
+      // Disable input and buttons so student can't change answer
+      const input = document.getElementById('l3-input');
+      input.disabled = true;
+      document.getElementById('l3-submit-btn').disabled = true;
+      document.querySelectorAll('#l3-keyboard .key-btn').forEach(b => b.disabled = true);
+
+      if (typed === correct) {
+        // ✅ Correct answer!
+        score++;
+        results.push({ word: currentWord, correct: true });
+        showFeedback('l3-feedback', '🌟 Correct! Well done!', true);
+        popStar();
+      } else {
+        // ❌ Wrong — do NOT show the correct word yet
+        results.push({ word: currentWord, correct: false });
+        showFeedback('l3-feedback', '❌ Not quite! Keep practising!', false);
+      }
+
+      // Update score badge
+      updateScoreBadge('l3-score-badge', score, currentIndex + 1, wordList.length);
+
+      // Move to the next word automatically after a short pause
+      currentIndex++;
+      setTimeout(() => loadL3Word(), 1600);
     }
 
 
@@ -1364,20 +1432,20 @@
     }
 
     // ============================================
-    // KEYBOARD SUPPORT (for maze and hangman)
-    // Students can type letters on their keyboard too.
+    // KEYBOARD SUPPORT
     // ============================================
     document.addEventListener('keydown', (e) => {
-      const letter = e.key.toLowerCase();
-      if (!/^[a-z]$/.test(letter)) return;
-
       const active = document.querySelector('.screen.active');
       if (!active) return;
 
       if (active.id === 'screen-l2') {
-        // In hangman, pressing a key is the same as clicking the keyboard button
-        guessLetter(letter);
+        // In hangman, any letter key guesses that letter
+        const letter = e.key.toLowerCase();
+        if (/^[a-z]$/.test(letter)) guessLetter(letter);
       }
+
+      // Level 3 handles its own typing via the input box (oninput / onkeydown)
+      // No extra handling needed here for Level 3
     });
 
   </script>
